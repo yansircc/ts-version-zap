@@ -1,0 +1,23 @@
+{
+  "name": "ts-version-zap",
+  "module": "esnext",
+  "version": "1.0.0",
+  "scripts": {
+    "dev": "bun ./src/app.ts"
+  },
+  "type": "module",
+  "devDependencies": {
+    "@types/bun": "latest"
+  },
+  "peerDependencies": {
+    "typescript": "^5.0.0"
+  },
+  "dependencies": {
+    "@google/generative-ai": "^0.3.1",
+    "@langchain/core": "^0.1.51",
+    "@langchain/openai": "^0.0.23",
+    "@wppconnect-team/wppconnect": "^1.30.1",
+    "dotenv": "^16.4.5",
+    "winston": "^3.13.0"
+  }
+}
