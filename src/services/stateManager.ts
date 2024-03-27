@@ -4,6 +4,7 @@
 export let activeChatsHistory = new Map<string, any[]>();
 export let excludedNumbersIntervention = new Map<string, boolean>();
 export let lastSentMessageWarningByChatId = new Map<string, string>();
+export let manualInterventionActive = new Map<string, boolean>();
 
 // 提供操作这些状态的函数
 export function addToActiveChatsHistory(chatId: string, chatData: any) {

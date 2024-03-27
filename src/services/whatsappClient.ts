@@ -8,9 +8,10 @@ import { config } from '../config';
 export async function initWhatsAppClient(): Promise<void> {
     try {
         const wppClient = await wppconnect.create({
+            //session: config.wppSessionName,
             session: config.wppSessionName,
             puppeteerOptions: {
-                userDataDir: './whatsapp-session',
+                userDataDir: './whatsapp-session/' + config.wppSessionName,
             },
             catchQR: (base64Qrimg, asciiQR) => {
                 // 在这里处理二维码，例如显示在控制台或发送给某人扫描

@@ -44,6 +44,11 @@ export async function processMessage(client: Client, message: Message): Promise<
             break;
         default:
             console.log('未知的消息类型:', message.type);
+            try {
+                await client.sendText(message.from, `Sorry, network is bad, I cannot get your ${message.type} here. Could you please send me a text message?`);
+            } catch (error) {
+                console.error('处理未知消息类型时出错:', error);
+            }
             break;
     }
 }

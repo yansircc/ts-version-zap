@@ -6,6 +6,8 @@ export const config = {
   aiSelected: process.env.AI_SELECTED || 'GEMINI',
   maxRetries: 3,
   wppSessionName: 'YANSIR',
+  humanInterventionKeyword: ' ',
+  aiInterventionKeyword: '.',
   geminiKey: process.env.GEMINI_KEY,
   openAIKey: process.env.OPENAI_KEY,
   openAIAssistant: process.env.OPENAI_ASSISTANT,
