@@ -3,6 +3,7 @@ import type { Message } from '@wppconnect-team/wppconnect/dist/api/model/message
 import { callAIService } from '../services/aiService';
 import { fastGPTService } from '../services/fastGPT';
 import { isAllowedToProcess } from '../utils/helpers';
+import { splitMessages, sendMessagesWithTypingSimulation } from '../utils/messageUtils'; // 导入函数
 import * as stateManager from '../services/stateManager';
 
 interface Client {
@@ -27,23 +28,19 @@ export async function processMessage(client: Client, message: Message): Promise<
 
             // 获取 AI 的回复
             try {
-                //const { answer } = await callAIService(message.body, message.chatId);
-                const { answer } = await fastGPTService(message.chatId, message.body);
-                await client.sendText(message.from, answer);
+                const { answer } = await fastGPTService(message.chatId, message.body); // 假设直接使用 fastGPTService 获取回复
+                const messages = splitMessages(answer); // 使用 splitMessages 函数分割长文本回复
+                await sendMessagesWithTypingSimulation(client, message.from, message, messages); // 使用 sendMessagesWithTypingSimulation 函数发送消息
             } catch (error) {
                 console.error('处理消息时出错:', error);
             }
             break;
         case 'image':
-            // 处理图片消息的逻辑
-            break;
         case 'ptt':
         case 'audio':
-            // 处理音频消息的逻辑
-            break;
         case 'document':
         case 'location':
-            // 处理文档或位置消息的逻辑
+            // 其他消息类型的处理逻辑
             break;
         default:
             console.log('未知的消息类型:', message.type);

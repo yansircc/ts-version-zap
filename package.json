@@ -3,11 +3,12 @@
   "module": "esnext",
   "version": "1.0.0",
   "scripts": {
-    "dev": "bun ./src/app.ts"
+    "dev": "bun --hot ./src/app.ts"
   },
   "type": "module",
   "devDependencies": {
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "ts-node-dev": "^2.0.0"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
