@@ -6,6 +6,7 @@
  * @returns 分割后的消息数组。
  */
 export function splitMessages(text: string): string[] {
+    const MAX_LENGTH = 150; // 每句话最多150个字符
     const complexPattern = /(http[s]?:\/\/[^\s]+)|(www\.[^\s]+)|([^\s]+@[^\s]+\.[^\s]+)|(["'].*?["'])|(\b\d+\.\s)|(\w+\.\w+)/g;
     const placeholders = text.match(complexPattern) ?? [];
     const placeholder = "PLACEHOLDER_";
@@ -18,6 +19,27 @@ export function splitMessages(text: string): string[] {
     if (placeholders.length > 0) {
         parts = parts.map(part => placeholders.reduce((acc, val, idx) => acc.replace(`${placeholder}${idx}`, val), part));
     }
+
+    // 细化分割逻辑
+    parts = parts.flatMap(part => {
+        const sentences = part.split(/(?<=[.?!])\s+/); // 根据句子结束符进行分割
+        return sentences.flatMap(sentence => {
+            if (sentence.length <= MAX_LENGTH) return sentence.replace(/[.!]$/, ''); // 移除末尾的句号或感叹号
+            const subParts = []; // 分割过长的句子
+            while (sentence.length > 0) {
+                let cutIndex = Math.min(sentence.lastIndexOf(' ', MAX_LENGTH), sentence.length);
+                // 遇到逗号的额外分割逻辑
+                if (sentence[cutIndex - 1] === ',' && Math.random() < 0.5) {
+                    cutIndex--; // 移除逗号
+                }
+                const subPart = sentence.slice(0, cutIndex).trim().replace(/[,.?!]$/, ''); // 移除末尾的标点
+                subParts.push(subPart);
+                sentence = sentence.slice(cutIndex).trim();
+            }
+            return subParts;
+        });
+    });
+
     return parts;
 }
 

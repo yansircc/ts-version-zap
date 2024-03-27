@@ -3,7 +3,7 @@
   "module": "esnext",
   "version": "1.0.0",
   "scripts": {
-    "dev": "bun --hot ./src/app.ts"
+    "dev": "bun ./src/app.ts"
   },
   "type": "module",
   "devDependencies": {
