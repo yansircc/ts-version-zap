@@ -3,8 +3,9 @@
   "module": "esnext",
   "version": "1.0.0",
   "scripts": {
-    "config": "bun run ./src/config/setupConfig.ts",
-    "dev": "sudo bun ./src/app.ts"
+    "config": "bun ./src/config/setupConfig.ts",
+    "dev": "bun ./src/app.ts",
+    "close": "bun ./src/services/destroyClient.ts"
   },
   "type": "module",
   "devDependencies": {
