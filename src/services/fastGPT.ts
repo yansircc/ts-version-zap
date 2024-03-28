@@ -45,8 +45,8 @@ async function loadChatHistory(chatId: string): Promise<ChatHistory> {
       // 如果文件不存在，则返回默认的聊天历史
       logger.info(`聊天Id=${chatId}没有现有的聊天历史。使用默认值。`);
       return [
-        ['human', config.fastGPTPrompt || '嗨，你好！'],
-        ['ai', '你好！我能帮你什么？'],
+        ['human', config.fastGPTPrompt || 'Long time no see!'],
+        ['ai', 'Ohh, it has been a while! LTNS, how can I help you?'],
       ];
     } else {
       logger.error('读取聊天历史失败:', error);

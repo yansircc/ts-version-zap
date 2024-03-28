@@ -20,17 +20,20 @@ export function splitMessages(text: string): string[] {
         parts = parts.map(part => placeholders.reduce((acc, val, idx) => acc.replace(`${placeholder}${idx}`, val), part));
     }
 
-    // 优化细化分割逻辑
+    // 细化分割逻辑，包含移除末尾标点的逻辑
     return parts.flatMap(part => {
         const sentences = part.split(/(?<=[.?!])\s+/); // 根据句子结束符进行分割
         return sentences.reduce((acc, sentence) => {
             while (sentence.length > MAX_LENGTH) {
                 let cutIndex = sentence.lastIndexOf(' ', MAX_LENGTH);
                 if (cutIndex === -1 || cutIndex === 0) cutIndex = MAX_LENGTH; // 处理无空格的长字符串
-                acc.push(sentence.slice(0, cutIndex).trim());
-                sentence = sentence.slice(cutIndex + 1);
+                // 移除末尾的标点符号
+                const subPart = sentence.slice(0, cutIndex).trim().replace(/[,.?!]$/, '');
+                acc.push(subPart);
+                sentence = sentence.slice(cutIndex + 1).trim();
             }
-            if (sentence) acc.push(sentence); // 添加剩余部分（如果有）
+            // 如果句子长度小于等于MAX_LENGTH，直接添加到数组中，同时移除末尾的标点符号
+            if (sentence) acc.push(sentence.replace(/[,.?!]$/, ''));
             return acc;
         }, [] as string[]);
     });
