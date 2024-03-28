@@ -11,53 +11,50 @@ import { isAllowedToProcess } from '../utils/helpers';
 class MessageQueueManager {
     private pendingMessages: Message[] = [];
     private processing = false;
-    private waitingForMoreMessages: boolean = false;
+    private mergeTimeout: NodeJS.Timeout | null = null;
 
     async enqueue(message: Message): Promise<void> {
         this.pendingMessages.push(message);
         logger.info(`消息入队。队列大小: ${this.pendingMessages.length}`);
-        if (!this.processing && !this.waitingForMoreMessages) {
-            this.waitForMoreMessages();
-        }
+        // 无论何时，只要有消息入队，都重置等待定时器
+        this.resetMergeTimer();
     }
 
-    private waitForMoreMessages(): void {
-        if (this.waitingForMoreMessages) {
-            return; // 如果已经在等待，就不再设置新的定时器
+    private resetMergeTimer(): void {
+        if (this.mergeTimeout) {
+            clearTimeout(this.mergeTimeout);
         }
 
-        this.waitingForMoreMessages = true;
-        setTimeout(async () => {
+        // 设置一个新的定时器，无论是第一条消息还是后续消息
+        this.mergeTimeout = setTimeout(async () => {
             if (this.pendingMessages.length > 0 && !this.processing) {
                 await this.processMessages();
             }
-            this.waitingForMoreMessages = false;
         }, 5000); // 等待5秒看是否有更多消息到达
     }
 
     private async processMessages(): Promise<void> {
         if (this.processing) return;
-        
+
         this.processing = true;
         logger.info("开始处理消息。");
 
-        while (this.pendingMessages.length > 0) {
-            const combinedMessage = this.combineMessages(this.pendingMessages);
-            this.pendingMessages = []; // 在合并后清空队列
+        const combinedMessage = this.combineMessages(this.pendingMessages);
+        this.pendingMessages = []; // 在合并后清空队列
 
-            await this.handleMessage(combinedMessage);
-            // 处理完毕后，等待更多消息而不是立即处理
-            this.waitForMoreMessages();
-            
-            // 如果在处理期间有新消息到达，将在等待后处理
-            return; // 退出处理流程，等待可能的新消息
-        }
+        await this.handleMessage(combinedMessage);
 
         this.processing = false;
+        // 处理完消息后，如果队列中有新的消息，则重置等待定时器
+        if (this.pendingMessages.length > 0) {
+            this.resetMergeTimer();
+        } else {
+            this.mergeTimeout = null; // 如果没有新消息，则清除定时器
+        }
     }
 
     private combineMessages(messages: Message[]): Message {
-        const combinedBody = messages.map(msg => msg.body.trim()).join('\n').trim(); // 使用换行符作为分隔符
+        const combinedBody = messages.map(msg => msg.body.trim()).join('\n').trim();
         logger.info(`合并 ${messages.length} 条消息。`);
         return { ...messages[0], body: combinedBody };
     }
