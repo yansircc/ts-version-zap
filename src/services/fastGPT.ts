@@ -24,8 +24,9 @@ async function ensureChatHistoryDirExists(): Promise<void> {
     if (errnoError.code === 'ENOENT') {
       // If directory doesn't exist, create it
       await fsPromises.mkdir(chatHistoryDir, { recursive: true });
-      console.log('Chat history directory created.');
+      logger.info('Chat history directory created.');
     } else {
+      logger.error('Checking chat history directory failed:', error);
       throw error; // Re-throw error if it's not related to existence check
     }
   }
@@ -36,11 +37,13 @@ async function loadChatHistory(chatId: string): Promise<ChatHistory> {
   const filePath = path.join(chatHistoryDir, `${chatId}.json`);
   try {
     const data = await fsPromises.readFile(filePath, 'utf8');
+    logger.info(`Chat history for chatId=${chatId} loaded successfully.`);
     return JSON.parse(data);
   } catch (error) {
     const errnoError = error as NodeJS.ErrnoException;
     if (errnoError.code === 'ENOENT') {
       // If file doesn't exist, return default chat history
+      logger.info(`No existing chat history for chatId=${chatId}. Using default.`);
       return [
         ['human', config.fastGPTPrompt || 'Hi there!'],
         ['ai', 'Hello! How can I help you today?'],
@@ -57,6 +60,7 @@ async function saveChatHistory(chatId: string, history: ChatHistory): Promise<vo
   const filePath = path.join(chatHistoryDir, `${chatId}.json`);
   try {
     await fsPromises.writeFile(filePath, JSON.stringify(history), 'utf8');
+    logger.info(`Chat history for chatId=${chatId} saved successfully.`);
   } catch (error) {
     logger.error('Saving chat history failed:', error);
     throw error;
@@ -69,17 +73,20 @@ export const fastGPTService = async (chatId: string, input: string): Promise<AIR
   let history = await loadChatHistory(chatId);
 
   history.push(['human', input]); // Add new user input to the history
+  logger.info(`New input added to chat history for chatId=${chatId}.`);
 
   const prompt = ChatPromptTemplate.fromMessages(history);
   const chatModel = new ChatOpenAI({
     openAIApiKey: config.fastGPTKey,
     configuration: { baseURL: `${config.fastGPTEndpoint}/v1` },
   });
+  logger.info(`Sending request to FastGPT for chatId=${chatId}.`);
   const llmChain = prompt.pipe(chatModel).pipe(new StringOutputParser());
   const message = await llmChain.invoke({ input });
 
   history.push(['ai', message]); // Add AI response to the history
   await saveChatHistory(chatId, history); // Save updated history
+  logger.info(`FastGPT response received and saved for chatId=${chatId}.`);
 
   return { answer: message };
 };

@@ -15,32 +15,31 @@ class MessageQueueManager {
 
     async enqueue(message: Message): Promise<void> {
         this.pendingMessages.push(message);
+        console.log(`Message enqueued. Queue size: ${this.pendingMessages.length}`);
         if (!this.mergeTimeout) {
             this.startMergeTimer();
         }
     }
 
-    private resetMergeTimer(): void {
+    private startMergeTimer(): void {
         if (this.mergeTimeout) {
             clearTimeout(this.mergeTimeout);
         }
-    
+
+        console.log("Merge timer reset/start.");
         this.mergeTimeout = setTimeout(async () => {
             if (this.pendingMessages.length > 0) {
+                console.log("Merge timer triggered. Starting to process messages.");
                 await this.processMessages();
             }
         }, 5000); // 5 seconds wait time before processing messages
-    }
-    
-    private startMergeTimer(): void {
-        this.resetMergeTimer();
     }
 
     private async processMessages(): Promise<void> {
         if (this.processing) return;
         
+        console.log("Starting message processing.");
         this.processing = true;
-        // Stop the timer as we're now processing messages
         if (this.mergeTimeout) {
             clearTimeout(this.mergeTimeout);
             this.mergeTimeout = null;
@@ -49,28 +48,24 @@ class MessageQueueManager {
         while (this.pendingMessages.length > 0) {
             const combinedMessage = this.combineMessages(this.pendingMessages);
             this.pendingMessages = []; // Clear the queue
-
+            console.log(`Combined message created with body: ${combinedMessage.body.substring(0, 50)}...`);
+            
             await this.handleMessage(combinedMessage);
 
-            // Check if new messages were received during processing and immediately continue processing if so.
             if (this.pendingMessages.length > 0) {
+                console.log("New messages received during processing. Continuing to process.");
                 continue;
             }
         }
 
         this.processing = false;
-        this.resetMergeTimer(); // Reset the timer in case new messages arrive after processing
+        console.log("Message processing completed.");
     }
 
     private combineMessages(messages: Message[]): Message {
-        // 假设 messages 数组非空
         const combinedBody = messages.map(msg => msg.body.trim()).join('\n').trim(); // 使用换行符作为分隔
-        const baseMessage = messages[0];
-        
-        // 如果需要，可以在这里添加其他属性的合并逻辑
-        // 例如，计算最早和最晚的时间戳等
-        
-        return { ...baseMessage, body: combinedBody };
+        console.log(`Combining ${messages.length} messages.`);
+        return { ...messages[0], body: combinedBody };
     }
 
     private async handleMessage(combinedMessage: Message): Promise<void> {
@@ -79,30 +74,25 @@ class MessageQueueManager {
             logger.error('WhatsApp 客户端尚未初始化。');
             return;
         }
-    
-        // 检查是否允许处理消息
+
+        console.log("Handling combined message.");
         if (!isAllowedToProcess(combinedMessage.chatId, stateManager.excludedNumbersIntervention)) {
             logger.warn('不允许处理消息');
             return;
         }
-    
-        // 检查人工干预状态
+
         await checkForManualIntervention(combinedMessage.chatId);
         if (stateManager.isManualInterventionActive(combinedMessage.chatId)) {
             logger.warn('人工干预状态，不处理消息');
             return;
         }
-    
+
         try {
             const { answer } = await fastGPTService(combinedMessage.chatId, combinedMessage.body);
-            // After successfully calling fastGPTService, process the answer
             const messages = splitMessages(answer);
-            await sendMessagesWithTypingSimulation(getClient(), combinedMessage.from, combinedMessage, messages);
+            await sendMessagesWithTypingSimulation(client, combinedMessage.from, combinedMessage, messages);
         } catch (error) {
             logger.error('处理合并消息时出错:', error);
-            // Optionally retry or re-enqueue the combinedMessage for later processing
-            // For example, you might push the combinedMessage back to pendingMessages
-            // Or implement a retry mechanism based on specific error types or a retry counter
         }
     }
 }
