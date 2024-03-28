@@ -20,27 +20,20 @@ export function splitMessages(text: string): string[] {
         parts = parts.map(part => placeholders.reduce((acc, val, idx) => acc.replace(`${placeholder}${idx}`, val), part));
     }
 
-    // 细化分割逻辑
-    parts = parts.flatMap(part => {
+    // 优化细化分割逻辑
+    return parts.flatMap(part => {
         const sentences = part.split(/(?<=[.?!])\s+/); // 根据句子结束符进行分割
-        return sentences.flatMap(sentence => {
-            if (sentence.length <= MAX_LENGTH) return sentence.replace(/[.!]$/, ''); // 移除末尾的句号或感叹号
-            const subParts = []; // 分割过长的句子
-            while (sentence.length > 0) {
-                let cutIndex = Math.min(sentence.lastIndexOf(' ', MAX_LENGTH), sentence.length);
-                // 遇到逗号的额外分割逻辑
-                if (sentence[cutIndex - 1] === ',' && Math.random() < 0.5) {
-                    cutIndex--; // 移除逗号
-                }
-                const subPart = sentence.slice(0, cutIndex).trim().replace(/[,.?!]$/, ''); // 移除末尾的标点
-                subParts.push(subPart);
-                sentence = sentence.slice(cutIndex).trim();
+        return sentences.reduce((acc, sentence) => {
+            while (sentence.length > MAX_LENGTH) {
+                let cutIndex = sentence.lastIndexOf(' ', MAX_LENGTH);
+                if (cutIndex === -1 || cutIndex === 0) cutIndex = MAX_LENGTH; // 处理无空格的长字符串
+                acc.push(sentence.slice(0, cutIndex).trim());
+                sentence = sentence.slice(cutIndex + 1);
             }
-            return subParts;
-        });
+            if (sentence) acc.push(sentence); // 添加剩余部分（如果有）
+            return acc;
+        }, [] as string[]);
     });
-
-    return parts;
 }
 
 /**
@@ -49,9 +42,10 @@ export function splitMessages(text: string): string[] {
  * @returns 打字延迟时间（毫秒）。
  */
 export function calculateTypingDelay(message: string): number {
-    const baseDelay = 500; // 基本延迟时间，例如500毫秒
-    const perCharDelay = 100; // 每个字符的延迟时间，例如100毫秒
-    return baseDelay + message.length * perCharDelay;
+    const baseDelay = 300; // 基础延迟时间
+    const perCharDelay = 100; // 每个字符的延迟时间
+    const lengthDelay = Math.min(message.length * perCharDelay, 3000); // 为长消息设置最大延迟时间
+    return baseDelay + lengthDelay;
 }
 
 /**
@@ -68,14 +62,6 @@ export async function sendMessagesWithTypingSimulation(client: any, targetNumber
     for (const [index, message] of messages.entries()) {
         // 模拟开始打字
         await client.startTyping(targetNumber);
-
-        // 随机添加短暂停顿
-        if (Math.random() < 0.5) { // 有 50% 的概率触发短暂停顿
-            await new Promise(resolve => setTimeout(resolve, 500 + Math.random() * 1000)); // 随机停顿 0.5 到 1.5 秒
-            await client.stopTyping(targetNumber);
-            await new Promise(resolve => setTimeout(resolve, 200)); // 停止后稍等一下再开始，模拟人重新开始打字
-            await client.startTyping(targetNumber);
-        }
 
         const typingDelay = calculateTypingDelay(message);
         // 等待模拟打字完成

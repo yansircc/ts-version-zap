@@ -6,87 +6,87 @@ import { ChatOpenAI } from '@langchain/openai';
 import { StringOutputParser } from '@langchain/core/output_parsers';
 import { ChatPromptTemplate } from '@langchain/core/prompts';
 
-// Define types for better clarity and maintenance
+// 定义类型以提高清晰度和便于维护
 interface AIResponse {
   answer: string;
 }
 type ChatHistory = [string, string][];
 
-// Define chat history directory path
+// 定义聊天历史目录路径
 const chatHistoryDir = path.join(__dirname, '..', 'chat-history', config.wppSessionName);
 
-// Ensure chat history directory exists
+// 确保聊天历史目录存在
 async function ensureChatHistoryDirExists(): Promise<void> {
   try {
     await fsPromises.access(chatHistoryDir);
   } catch (error) {
     const errnoError = error as NodeJS.ErrnoException;
     if (errnoError.code === 'ENOENT') {
-      // If directory doesn't exist, create it
+      // 如果目录不存在，则创建它
       await fsPromises.mkdir(chatHistoryDir, { recursive: true });
-      logger.info('Chat history directory created.');
+      logger.info('聊天历史目录已创建。');
     } else {
-      logger.error('Checking chat history directory failed:', error);
-      throw error; // Re-throw error if it's not related to existence check
+      logger.error('检查聊天历史目录失败:', error);
+      throw error; // 如果错误不是因为目录不存在，则重新抛出错误
     }
   }
 }
 
-// Load chat history from file
+// 从文件加载聊天历史
 async function loadChatHistory(chatId: string): Promise<ChatHistory> {
   const filePath = path.join(chatHistoryDir, `${chatId}.json`);
   try {
     const data = await fsPromises.readFile(filePath, 'utf8');
-    logger.info(`Chat history for chatId=${chatId} loaded successfully.`);
+    logger.info(`成功加载聊天Id=${chatId}的聊天历史。`);
     return JSON.parse(data);
   } catch (error) {
     const errnoError = error as NodeJS.ErrnoException;
     if (errnoError.code === 'ENOENT') {
-      // If file doesn't exist, return default chat history
-      logger.info(`No existing chat history for chatId=${chatId}. Using default.`);
+      // 如果文件不存在，则返回默认的聊天历史
+      logger.info(`聊天Id=${chatId}没有现有的聊天历史。使用默认值。`);
       return [
-        ['human', config.fastGPTPrompt || 'Hi there!'],
-        ['ai', 'Hello! How can I help you today?'],
+        ['human', config.fastGPTPrompt || '嗨，你好！'],
+        ['ai', '你好！我能帮你什么？'],
       ];
     } else {
-      logger.error('Reading chat history failed:', error);
-      throw error; // Re-throw error if it's not related to existence check
+      logger.error('读取聊天历史失败:', error);
+      throw error; // 如果错误不是因为文件不存在，则重新抛出错误
     }
   }
 }
 
-// Save chat history to file
+// 将聊天历史保存到文件
 async function saveChatHistory(chatId: string, history: ChatHistory): Promise<void> {
   const filePath = path.join(chatHistoryDir, `${chatId}.json`);
   try {
     await fsPromises.writeFile(filePath, JSON.stringify(history), 'utf8');
-    logger.info(`Chat history for chatId=${chatId} saved successfully.`);
+    logger.info(`聊天Id=${chatId}的聊天历史已成功保存。`);
   } catch (error) {
-    logger.error('Saving chat history failed:', error);
+    logger.error('保存聊天历史失败:', error);
     throw error;
   }
 }
 
-// Main function to interact with FastGPT
+// 与FastGPT交互的主要函数
 export const fastGPTService = async (chatId: string, input: string): Promise<AIResponse> => {
   await ensureChatHistoryDirExists();
   let history = await loadChatHistory(chatId);
 
-  history.push(['human', input]); // Add new user input to the history
-  logger.info(`New input added to chat history for chatId=${chatId}.`);
+  history.push(['human', input]); // 添加新的用户输入到历史记录中
+  logger.info(`聊天Id=${chatId}的聊天历史中添加了新输入。`);
 
   const prompt = ChatPromptTemplate.fromMessages(history);
   const chatModel = new ChatOpenAI({
     openAIApiKey: config.fastGPTKey,
     configuration: { baseURL: `${config.fastGPTEndpoint}/v1` },
   });
-  logger.info(`Sending request to FastGPT for chatId=${chatId}.`);
+  logger.info(`正在向FastGPT发送请求，聊天Id=${chatId}。`);
   const llmChain = prompt.pipe(chatModel).pipe(new StringOutputParser());
   const message = await llmChain.invoke({ input });
 
-  history.push(['ai', message]); // Add AI response to the history
-  await saveChatHistory(chatId, history); // Save updated history
-  logger.info(`FastGPT response received and saved for chatId=${chatId}.`);
+  history.push(['ai', message]); // 将AI回应添加到历史记录中
+  await saveChatHistory(chatId, history); // 保存更新后的历史记录
+  logger.info(`已接收并保存来自聊天Id=${chatId}的FastGPT回应。`);
 
   return { answer: message };
 };
