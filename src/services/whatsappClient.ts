@@ -2,7 +2,8 @@
 import * as wppconnect from '@wppconnect-team/wppconnect';
 import type { Whatsapp } from '@wppconnect-team/wppconnect';
 import type { Message } from '@wppconnect-team/wppconnect/dist/api/model/message';
-import { processMessage, isValidMessage } from '../handlers/messageHandler';
+import { processMessage } from '../handlers/messageHandler';
+import { isValidMessage } from '../utils/isValidMessage';
 import { config } from '../config';
 import { logger } from '../utils/logger';
 
