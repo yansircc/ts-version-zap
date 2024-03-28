@@ -7,7 +7,7 @@ import { validateConfig } from './config';
 import { initWhatsAppClient } from './services/whatsappClient';
 
 // 导入并启动 Express 服务器
-import './public/server';
+//import './public/server';
 
 startLogging();
 validateConfig();
