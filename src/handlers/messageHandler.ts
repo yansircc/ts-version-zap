@@ -24,22 +24,16 @@ class MessageQueueManager {
         if (this.mergeTimeout) {
             clearTimeout(this.mergeTimeout);
         }
-
-        this.mergeTimeout = setTimeout(() => {
-            this.processMessages();
-        }, 5000); // 5 seconds wait time before processing messages
-    }
-
-    private startMergeTimer(): void {
-        if (this.mergeTimeout) {
-            clearTimeout(this.mergeTimeout);
-        }
-
+    
         this.mergeTimeout = setTimeout(async () => {
             if (this.pendingMessages.length > 0) {
                 await this.processMessages();
             }
         }, 5000); // 5 seconds wait time before processing messages
+    }
+    
+    private startMergeTimer(): void {
+        this.resetMergeTimer();
     }
 
     private async processMessages(): Promise<void> {
