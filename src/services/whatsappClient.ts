@@ -1,12 +1,20 @@
 // src/services/whatsappClient.ts
 import * as wppconnect from '@wppconnect-team/wppconnect';
+import type { Whatsapp } from '@wppconnect-team/wppconnect';
 import type { Message } from '@wppconnect-team/wppconnect/dist/api/model/message';
 import { processMessage, isValidMessage } from '../handlers/messageHandler';
 import { config } from '../config';
 import { logger } from '../utils/logger';
 
+let clientInstance: Whatsapp | null = null;
+
 // Main function to start the application
 export async function initWhatsAppClient(): Promise<void> {
+    if (clientInstance !== null) {
+        // 客户端已初始化
+        return;
+    }
+
     try {
         const wppClient = await wppconnect.create({
             session: config.wppSessionName,
@@ -30,15 +38,20 @@ export async function initWhatsAppClient(): Promise<void> {
         wppClient.onMessage(async (message: Message) => {
             if (isValidMessage(message)) {
                 try {
-                    await processMessage(wppClient, message);
+                    await processMessage(message);
                 } catch (error) {
                     logger.error('处理消息时发生错误:', error);
                 }
             }
         });
 
+        clientInstance = wppClient;
         logger.info('WhatsApp 客户端初始化成功，并开始监听消息。');
     } catch (error) {
         logger.error('初始化 WhatsApp 客户端失败:', error);
     }
+}
+
+export function getClient(): Whatsapp | null {
+    return clientInstance;
 }

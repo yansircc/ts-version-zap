@@ -6,9 +6,9 @@ import { logger } from '../utils/logger';
 export const config = {
   aiSelected: process.env.AI_SELECTED || 'GEMINI',
   maxRetries: 3,
-  wppSessionName: 'YANSIR',
-  humanInterventionKeyword: '.', // 人工干预关键词，句号结尾
-  aiInterventionKeyword: ',', // AI干预关键词，逗号结尾
+  wppSessionName: process.env.WPP_SESSION_NAME || 'YANSIR',
+  humanInterventionKeyword: process.env.HUMAN_INTERVENTION_KEYWORD || '.', // 人工干预关键词，句号结尾
+  aiInterventionKeyword: process.env.AI_INTERVENTION_KEYWORD || ',', // AI干预关键词，逗号结尾
   geminiKey: process.env.GEMINI_KEY,
   openAIKey: process.env.OPENAI_KEY,
   openAIAssistant: process.env.OPENAI_ASSISTANT,
