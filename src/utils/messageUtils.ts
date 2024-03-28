@@ -83,10 +83,10 @@ export async function sendMessagesWithTypingSimulation(client: any, targetNumber
 
         // 如果是第一条消息，引用原始消息
         if (index === 0) {
-            await client.reply(targetNumber, message, originalMessage.id);
+            await client.reply(targetNumber, message.trim(), originalMessage.id);
         } else {
             // 发送消息
-            await client.sendText(targetNumber, message);
+            await client.sendText(targetNumber, message.trim());
         }
         
         // 停止打字模拟

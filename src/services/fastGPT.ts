@@ -1,5 +1,6 @@
 // src/services/fastGPT.ts
 import { config } from '../config';
+import { logger } from '../utils/logger';
 import { ChatOpenAI } from '@langchain/openai';
 import { StringOutputParser } from '@langchain/core/output_parsers';
 import { ChatPromptTemplate } from '@langchain/core/prompts';
@@ -23,7 +24,7 @@ function initializeChatHistory(): ChatHistory {
   ];
 }
 
-const SESSION_TIMEOUT = 60000; // 示例超时时间，例如60000毫秒（1分钟）
+const SESSION_TIMEOUT = 3600000; // 示例超时时间，例如60000毫秒（1分钟）
 
 export const fastGPTService = async (chatId: string, input: string): Promise<AIResponse> => {
   let history = chatHistories.get(chatId) || initializeChatHistory();
@@ -53,7 +54,7 @@ export const fastGPTService = async (chatId: string, input: string): Promise<AIR
   const timeoutId = setTimeout(() => {
     chatHistories.delete(chatId);
     sessionTimeouts.delete(chatId);
-    console.log(`Session ${chatId} has expired and been removed.`);
+    logger.warn(`会话 ${chatId} 已超时并被删除`);
   }, SESSION_TIMEOUT);
 
   // 保存超时ID

@@ -6,7 +6,18 @@ export let excludedNumbersIntervention = new Map<string, boolean>();
 export let lastSentMessageWarningByChatId = new Map<string, string>();
 export let manualInterventionActive = new Map<string, boolean>();
 
-// 提供操作这些状态的函数
+export function activateManualIntervention(chatId: string) {
+    manualInterventionActive.set(chatId, true);
+}
+
+export function deactivateManualIntervention(chatId: string) {
+    manualInterventionActive.set(chatId, false);
+}
+
+export function isManualInterventionActive(chatId: string) {
+    return manualInterventionActive.get(chatId) || false;
+}
+
 export function addToActiveChatsHistory(chatId: string, chatData: any) {
     // 逻辑添加到 activeChatsHistory
 }

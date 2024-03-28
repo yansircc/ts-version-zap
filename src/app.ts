@@ -1,5 +1,5 @@
 // src/app.ts
-import { startLogging } from './utils/logger';
+import { startLogging, logger } from './utils/logger';
 import { validateConfig } from './config';
 import { initWhatsAppClient } from './services/whatsappClient';
 
@@ -11,11 +11,11 @@ validateConfig();
 
 // SIGINT信号处理
 process.on('SIGINT', () => {
-    console.log('Caught interrupt signal, exiting...');
+    logger.debug('Caught interrupt signal, exiting...');
     process.exit();
 });
 
 // 启动WhatsApp客户端
 initWhatsAppClient().then(() => {
-    console.log('WhatsApp 客户端初始化成功，并开始监听消息。');
-}).catch(console.error);
+    logger.info('WhatsApp 客户端初始化成功，并开始监听消息。');
+}).catch(logger.error);
