@@ -24,7 +24,7 @@ export function processMessage(message: Message): void {
     switch (message.type) {
         case 'chat':
             // 对于文本消息，检查人工干预状态，然后使用队列合并逻辑
-            messageQueue.enqueue(message.body, async (combinedMessage: string) => {
+            messageQueue.enqueue(message, async (combinedMessage: Message) => {
                 await checkForManualIntervention(message.chatId);
                 if (stateManager.isManualInterventionActive(message.chatId)) {
                     logger.warn('人工干预状态，不处理消息');
@@ -32,9 +32,11 @@ export function processMessage(message: Message): void {
                 }
 
                 try {
-                    const { answer } = await fastGPTService(message.chatId, combinedMessage);
+                    // 注意这里我们使用 combinedMessage.chatId 和 combinedMessage.body
+                    // 因为 combinedMessage 现在是一个完整的 Message 对象
+                    const { answer } = await fastGPTService(combinedMessage.chatId, combinedMessage.body);
                     const messages = splitMessages(answer);
-                    await sendMessagesWithTypingSimulation(client, message.from, message, messages);
+                    await sendMessagesWithTypingSimulation(client, combinedMessage.from, combinedMessage, messages);
                 } catch (error) {
                     logger.error('处理消息时出错:', error);
                 }

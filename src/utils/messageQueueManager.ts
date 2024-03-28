@@ -1,38 +1,58 @@
 // src/utils/messageQueueManager.ts
-
-type TaskGenerator = (combinedMessage: string) => Promise<void>;
+import type { Message } from '@wppconnect-team/wppconnect/dist/api/model/message';
 
 class MessageQueueManager {
     private processing = false;
-    private pendingMessages: string[] = []; // 用于存储等待合并的消息
-  
-    async enqueue(message: string, taskGenerator: TaskGenerator): Promise<void> {
-        // 将新消息添加到待合并的消息数组中
+    private pendingMessages: Message[] = [];
+    private lastMessageTime: number | null = null;
+
+    async enqueue(message: Message, taskGenerator: (message: Message) => Promise<void>): Promise<void> {
         this.pendingMessages.push(message);
-        if (this.processing) {
-            // 如果当前正在处理消息，则退出，待合并的消息将在当前任务完成后一起处理
-            return;
-        }
-        this.processing = true;
+        this.lastMessageTime = Date.now(); // 更新最后一条消息的到达时间
 
-        // 等待一段时间以允许更多的消息到达并被合并
-        await new Promise(resolve => setTimeout(resolve, 100)); // 等待100毫秒
+        if (!this.processing) {
+            this.processing = true;
 
-        // 合并消息
-        const combinedMessage = this.pendingMessages.join(' '); // 以空格拼接消息
-        this.pendingMessages = []; // 清空待合并的消息数组，准备下一轮合并
+            while (this.pendingMessages.length > 0) {
+                if (this.lastMessageTime !== null) { // 确保 lastMessageTime 不为 null
+                    const now = Date.now();
+                    const timeSinceLastMessage = now - this.lastMessageTime;
+                    if (timeSinceLastMessage < 100) {
+                        // 继续等待，以便积累更多消息
+                        await new Promise(resolve => setTimeout(resolve, 100 - timeSinceLastMessage));
+                    }
+                }
 
-        // 创建并执行任务
-        try {
-            await taskGenerator(combinedMessage);
-        } finally {
-            this.processing = false;
-            if (this.pendingMessages.length > 0) {
-                // 如果在处理当前任务时收到了新的消息，则立即开始处理这些新消息
-                this.enqueue(this.pendingMessages.join(' '), taskGenerator);
-                this.pendingMessages = []; // 再次清空待合并的消息数组
+                const combinedMessage = this.createCombinedMessage(this.pendingMessages);
+                this.pendingMessages = []; // 清空消息队列
+
+                try {
+                    await taskGenerator(combinedMessage);
+                } catch (error) {
+                    console.error('Error processing combined message:', error);
+                    // 在这里添加您的错误处理逻辑
+                }
+
+                // 如果在处理过程中有新的消息到达，则根据 lastMessageTime 判断是否需要继续等待
+                if (this.lastMessageTime !== null && Date.now() - this.lastMessageTime < 100) {
+                    await new Promise(resolve => setTimeout(resolve, 100));
+                }
             }
+
+            this.processing = false;
+            this.lastMessageTime = null; // 处理完消息后重置 lastMessageTime
         }
+    }
+
+    private createCombinedMessage(messages: Message[]): Message {
+        if (messages.length === 0) {
+            throw new Error('No messages to combine');
+        }
+
+        const firstMessage = messages[0];
+        const combinedBody = messages.map(msg => msg.body).join(' ');
+
+        return { ...firstMessage, body: combinedBody };
     }
 }
 
