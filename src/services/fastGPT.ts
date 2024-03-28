@@ -1,57 +1,74 @@
-// src/services/fastGPT.ts
-import * as fs from 'fs';
 import * as path from 'path';
+import { promises as fsPromises } from 'fs';
 import { config } from '../config';
 import { logger } from '../utils/logger';
 import { ChatOpenAI } from '@langchain/openai';
 import { StringOutputParser } from '@langchain/core/output_parsers';
 import { ChatPromptTemplate } from '@langchain/core/prompts';
 
-// 定义 AI 服务的响应类型和聊天历史类型
+// Define types for better clarity and maintenance
 interface AIResponse {
   answer: string;
 }
 type ChatHistory = [string, string][];
 
-// 定义和确保聊天记录文件夹存在
+// Define chat history directory path
 const chatHistoryDir = path.join(__dirname, '..', 'chat-history', config.wppSessionName);
-if (!fs.existsSync(chatHistoryDir)) {
-  fs.mkdirSync(chatHistoryDir, { recursive: true });
-}
 
-// 从文件中读取聊天历史
-async function loadChatHistory(chatId: string): Promise<ChatHistory> {
-  const filePath = path.join(chatHistoryDir, `${chatId}.json`);
-  if (fs.existsSync(filePath)) {
-    try {
-      const data = fs.readFileSync(filePath, 'utf8');
-      return JSON.parse(data);
-    } catch (error) {
-      logger.error('读取聊天历史时出错:', error);
+// Ensure chat history directory exists
+async function ensureChatHistoryDirExists(): Promise<void> {
+  try {
+    await fsPromises.access(chatHistoryDir);
+  } catch (error) {
+    const errnoError = error as NodeJS.ErrnoException;
+    if (errnoError.code === 'ENOENT') {
+      // If directory doesn't exist, create it
+      await fsPromises.mkdir(chatHistoryDir, { recursive: true });
+      console.log('Chat history directory created.');
+    } else {
+      throw error; // Re-throw error if it's not related to existence check
     }
   }
-  // 使用默认提示初始化聊天历史，如果文件不存在或读取失败
-  return [
-    ['human', config.fastGPTPrompt || 'Hi there!'],
-    ['ai', 'Hello! How can I help you today?'],
-  ];
 }
 
-// 将聊天历史写入到文件中
+// Load chat history from file
+async function loadChatHistory(chatId: string): Promise<ChatHistory> {
+  const filePath = path.join(chatHistoryDir, `${chatId}.json`);
+  try {
+    const data = await fsPromises.readFile(filePath, 'utf8');
+    return JSON.parse(data);
+  } catch (error) {
+    const errnoError = error as NodeJS.ErrnoException;
+    if (errnoError.code === 'ENOENT') {
+      // If file doesn't exist, return default chat history
+      return [
+        ['human', config.fastGPTPrompt || 'Hi there!'],
+        ['ai', 'Hello! How can I help you today?'],
+      ];
+    } else {
+      logger.error('Reading chat history failed:', error);
+      throw error; // Re-throw error if it's not related to existence check
+    }
+  }
+}
+
+// Save chat history to file
 async function saveChatHistory(chatId: string, history: ChatHistory): Promise<void> {
   const filePath = path.join(chatHistoryDir, `${chatId}.json`);
   try {
-    fs.writeFileSync(filePath, JSON.stringify(history), 'utf8');
+    await fsPromises.writeFile(filePath, JSON.stringify(history), 'utf8');
   } catch (error) {
-    logger.error('保存聊天历史时出错:', error);
+    logger.error('Saving chat history failed:', error);
+    throw error;
   }
 }
 
-// fastGPT服务主函数
+// Main function to interact with FastGPT
 export const fastGPTService = async (chatId: string, input: string): Promise<AIResponse> => {
+  await ensureChatHistoryDirExists();
   let history = await loadChatHistory(chatId);
 
-  history.push(['human', input]); // 添加新的用户输入到历史中
+  history.push(['human', input]); // Add new user input to the history
 
   const prompt = ChatPromptTemplate.fromMessages(history);
   const chatModel = new ChatOpenAI({
@@ -61,8 +78,8 @@ export const fastGPTService = async (chatId: string, input: string): Promise<AIR
   const llmChain = prompt.pipe(chatModel).pipe(new StringOutputParser());
   const message = await llmChain.invoke({ input });
 
-  history.push(['ai', message]); // 将AI的回复添加到聊天历史中
-  await saveChatHistory(chatId, history); // 保存更新后的聊天历史到文件
+  history.push(['ai', message]); // Add AI response to the history
+  await saveChatHistory(chatId, history); // Save updated history
 
   return { answer: message };
 };
