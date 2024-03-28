@@ -20,6 +20,8 @@ export async function initWhatsAppClient(): Promise<void> {
             session: config.wppSessionName,
             puppeteerOptions: {
                 userDataDir: './whatsapp-session/' + config.wppSessionName,
+                headless: true,
+                args: ['--no-sandbox'],
             },
             catchQR: (base64Qrimg, asciiQR) => {
                 // 在这里处理二维码，例如显示在控制台或发送给某人扫描
