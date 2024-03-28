@@ -24,10 +24,10 @@ class MessageQueueManager {
     async enqueue(message: Message): Promise<void> {
         this.pendingMessages.push(message);
         logger.info(`消息入队。队列大小: ${this.pendingMessages.length}`);
-        if (!this.processing && !stateManager.messageSendingCompleted) {
+        if (!this.processing && stateManager.messageSendingCompleted.get(message.chatId) !== false) {
             this.resetMergeTimer();
         }
-    }
+    }    
 
     private resetMergeTimer(): void {
         if (this.mergeTimeout) {
@@ -103,10 +103,12 @@ class MessageQueueManager {
     }
 
     private checkAndProcessPendingMessages(): void {
-        if (this.pendingMessages.length > 0 && stateManager.messageSendingCompleted) {
+        // 检查所有chatId的消息是否都发送完成
+        const allCompleted = Array.from(stateManager.messageSendingCompleted.values()).every(completed => completed);
+        if (this.pendingMessages.length > 0 && allCompleted) {
             this.resetMergeTimer();
         }
-    }
+    }    
 }
 
 const messageQueue = new MessageQueueManager();
