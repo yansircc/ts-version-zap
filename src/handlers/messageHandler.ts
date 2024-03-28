@@ -7,14 +7,16 @@ import { splitMessages, sendMessagesWithTypingSimulation } from '../utils/messag
 import * as stateManager from '../services/stateManager';
 import { getClient } from '../services/whatsappClient';
 import { checkForManualIntervention } from '../utils/intervention';
+import { messageQueue } from '../utils/messageQueueManager';
 
 export async function processMessage(message: Message): Promise<void> {
-    const client = getClient();
-    if (!client) {
-        logger.error('WhatsApp 客户端尚未初始化。');
-        return;
-    }
-    console.log('收到消息:', message.body);
+    messageQueue.enqueue(async () => {
+        const client = getClient();
+        if (!client) {
+            logger.error('WhatsApp 客户端尚未初始化。');
+            return;
+        }
+        console.log('收到消息:', message.body);
 
     // 根据消息类型进行处理
     switch (message.type) {
@@ -57,4 +59,5 @@ export async function processMessage(message: Message): Promise<void> {
             }
             break;
     }
+});
 }
