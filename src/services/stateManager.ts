@@ -5,6 +5,11 @@ export let activeChatsHistory = new Map<string, any[]>();
 export let excludedNumbersIntervention = new Map<string, boolean>();
 export let lastSentMessageWarningByChatId = new Map<string, string>();
 export let manualInterventionActive = new Map<string, boolean>();
+export let messageSendingCompleted = new Map<string, boolean>();
+
+export function updateMessageSendingCompleted(chatId: string, completed: boolean) {
+    messageSendingCompleted.set(chatId, completed);
+}
 
 export function activateManualIntervention(chatId: string) {
     manualInterventionActive.set(chatId, true);

@@ -24,7 +24,7 @@ class MessageQueueManager {
     async enqueue(message: Message): Promise<void> {
         this.pendingMessages.push(message);
         logger.info(`消息入队。队列大小: ${this.pendingMessages.length}`);
-        if (!this.processing && !this.waitingForMoreMessages) {
+        if (!this.processing && !stateManager.messageSendingCompleted) {
             this.resetMergeTimer();
         }
     }
@@ -33,33 +33,34 @@ class MessageQueueManager {
         if (this.mergeTimeout) {
             clearTimeout(this.mergeTimeout);
         }
-        this.waitingForMoreMessages = true; // 标记开始等待新消息
-        this.mergeTimeout = setTimeout(async () => {
-            if (this.pendingMessages.length > 0) {
-                await this.processMessages();
+        this.waitingForMoreMessages = true;
+        this.mergeTimeout = setTimeout(() => {
+            if (this.pendingMessages.length > 0 && !this.processing) {
+                this.waitingForMoreMessages = false;
+                this.processMessages();
             }
-            this.waitingForMoreMessages = false; // 更新等待状态
-        }, 5000); // 设置5秒后处理消息的定时器
+        }, 5000);
     }
 
     private async processMessages(): Promise<void> {
         if (this.processing) return;
 
         this.processing = true;
-        logger.info("开始处理消息。");
-        // 清理定时器，因为我们即将开始处理消息
         if (this.mergeTimeout) {
             clearTimeout(this.mergeTimeout);
             this.mergeTimeout = null;
         }
 
-        const combinedMessage = this.combineMessages(this.pendingMessages);
-        this.pendingMessages = []; // 处理完消息后清空队列
-        await this.handleMessage(combinedMessage);
+        // 假设有待处理的消息
+        if (this.pendingMessages.length > 0) {
+            const combinedMessage = this.combineMessages(this.pendingMessages);
+            this.pendingMessages = []; // 清空队列
+            await this.handleMessage(combinedMessage);
+        }
 
         this.processing = false;
+        // 检查是否有新消息到达，如果有，则重置合并定时器
         if (this.pendingMessages.length > 0) {
-            // 如果在处理消息期间收到了新消息，则重置定时器等待新消息
             this.resetMergeTimer();
         }
     }
@@ -77,7 +78,6 @@ class MessageQueueManager {
             return;
         }
 
-        logger.info("处理合并后的消息。");
         if (!isAllowedToProcess(combinedMessage.chatId, stateManager.excludedNumbersIntervention)) {
             logger.warn('不允许处理此消息。');
             return;
@@ -89,12 +89,22 @@ class MessageQueueManager {
             return;
         }
 
+        stateManager.updateMessageSendingCompleted(combinedMessage.chatId, false); // 消息发送中
         try {
             const { answer } = await fastGPTService(combinedMessage.chatId, combinedMessage.body);
             const messages = splitMessages(answer);
             await sendMessagesWithTypingSimulation(client, combinedMessage.from, combinedMessage, messages);
         } catch (error) {
             logger.error('处理合并消息时出错:', error);
+        } finally {
+            stateManager.updateMessageSendingCompleted(combinedMessage.chatId, true); // 消息发送完成
+            this.checkAndProcessPendingMessages();
+        }
+    }
+
+    private checkAndProcessPendingMessages(): void {
+        if (this.pendingMessages.length > 0 && stateManager.messageSendingCompleted) {
+            this.resetMergeTimer();
         }
     }
 }
