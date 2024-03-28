@@ -1,4 +1,3 @@
-// src/services/fastGPT.ts
 import { config } from '../config';
 import { logger } from '../utils/logger';
 import { ChatOpenAI } from '@langchain/openai';
@@ -24,7 +23,7 @@ function initializeChatHistory(): ChatHistory {
   ];
 }
 
-const SESSION_TIMEOUT = 3600000; // 示例超时时间，例如60000毫秒（1分钟）
+const SESSION_TIMEOUT = 300000; // 示例超时时间，例如60000毫秒（1分钟）
 
 export const fastGPTService = async (chatId: string, input: string): Promise<AIResponse> => {
   let history = chatHistories.get(chatId) || initializeChatHistory();
@@ -62,3 +61,18 @@ export const fastGPTService = async (chatId: string, input: string): Promise<AIR
 
   return { answer: message }; // 确保返回 AIResponse 类型
 };
+
+// 定期清理逻辑
+const CLEAN_UP_INTERVAL = 24 * 60 * 60 * 1000; // 每天执行一次清理
+
+setInterval(() => {
+  const now = Date.now();
+  for (const [chatId, timeoutId] of sessionTimeouts.entries()) {
+    if (now - parseInt(chatId) > SESSION_TIMEOUT + CLEAN_UP_INTERVAL) { // 这里需要一个合理的时间判断逻辑
+      clearTimeout(timeoutId);
+      sessionTimeouts.delete(chatId);
+      chatHistories.delete(chatId);
+      logger.info(`长时间不活跃的会话 ${chatId} 已被清理`);
+    }
+  }
+}, CLEAN_UP_INTERVAL);

@@ -20,7 +20,7 @@ export async function checkForManualIntervention(client: Whatsapp, chatId: strin
 
         try {
             // 获取最近的10条消息
-            const messages = await client.getMessages(chatId, { count: 10 });
+            const messages = await client.getMessages(chatId, { count: 3 });
             // 从获取的消息中筛选出最后一条由您发送的消息，利用(message as any).fromMe绕过提示
             const messagesSentByMe = messages.filter(message => (message as any).fromMe);
 
