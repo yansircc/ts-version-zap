@@ -11,26 +11,35 @@ import { isAllowedToProcess } from '../utils/helpers';
 class MessageQueueManager {
     private pendingMessages: Message[] = [];
     private processing = false;
+    private waitingForMoreMessages = false;
     private mergeTimeout: NodeJS.Timeout | null = null;
+
+    constructor() {
+        this.pendingMessages = [];
+        this.processing = false;
+        this.waitingForMoreMessages = false;
+        this.mergeTimeout = null;
+    }
 
     async enqueue(message: Message): Promise<void> {
         this.pendingMessages.push(message);
         logger.info(`消息入队。队列大小: ${this.pendingMessages.length}`);
-        // 无论何时，只要有消息入队，都重置等待定时器
-        this.resetMergeTimer();
+        if (!this.processing && !this.waitingForMoreMessages) {
+            this.resetMergeTimer();
+        }
     }
 
     private resetMergeTimer(): void {
         if (this.mergeTimeout) {
             clearTimeout(this.mergeTimeout);
         }
-
-        // 设置一个新的定时器，无论是第一条消息还是后续消息
+        this.waitingForMoreMessages = true; // 标记开始等待新消息
         this.mergeTimeout = setTimeout(async () => {
-            if (this.pendingMessages.length > 0 && !this.processing) {
+            if (this.pendingMessages.length > 0) {
                 await this.processMessages();
             }
-        }, 5000); // 等待5秒看是否有更多消息到达
+            this.waitingForMoreMessages = false; // 更新等待状态
+        }, 5000); // 设置5秒后处理消息的定时器
     }
 
     private async processMessages(): Promise<void> {
@@ -38,18 +47,20 @@ class MessageQueueManager {
 
         this.processing = true;
         logger.info("开始处理消息。");
+        // 清理定时器，因为我们即将开始处理消息
+        if (this.mergeTimeout) {
+            clearTimeout(this.mergeTimeout);
+            this.mergeTimeout = null;
+        }
 
         const combinedMessage = this.combineMessages(this.pendingMessages);
-        this.pendingMessages = []; // 在合并后清空队列
-
+        this.pendingMessages = []; // 处理完消息后清空队列
         await this.handleMessage(combinedMessage);
 
         this.processing = false;
-        // 处理完消息后，如果队列中有新的消息，则重置等待定时器
         if (this.pendingMessages.length > 0) {
+            // 如果在处理消息期间收到了新消息，则重置定时器等待新消息
             this.resetMergeTimer();
-        } else {
-            this.mergeTimeout = null; // 如果没有新消息，则清除定时器
         }
     }
 
