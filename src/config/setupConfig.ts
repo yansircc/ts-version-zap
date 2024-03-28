@@ -14,38 +14,38 @@ async function main() {
             type: 'list',
             name: 'aiSelected',
             message: '请选择 AI 服务:',
-            choices: ['GEMINI(暂不支持)', 'OpenAI(暂不支持)', 'iMikerAI'],
+            choices: ['GEMINI(暂不支持)', 'OpenAI(暂不支持)', 'fastGPT'],
         },
         {
             type: 'input',
-            name: 'geminiKey',
+            name: 'gemini_Key',
             message: '请输入 GEMINI_KEY:',
             when: (answers: { aiSelected: string; }) => answers.aiSelected === 'GEMINI',
         },
         {
             type: 'input',
-            name: 'openAIKey',
+            name: 'openAI_Key',
             message: '请输入 OPENAI_KEY:',
             when: (answers: { aiSelected: string; }) => answers.aiSelected === 'OpenAI',
         },
         {
             type: 'input',
-            name: 'openAIAssistant',
+            name: 'open_AIAssistant',
             message: '请输入 OPENAI_ASSISTANT:',
             when: (answers: { aiSelected: string; }) => answers.aiSelected === 'OpenAI',
         },
         {
             type: 'input',
-            name: 'fastGPTKey',
+            name: 'fastGPT_Key',
             message: '请输入米课AI的API KEY:',
-            when: (answers: { aiSelected: string; }) => answers.aiSelected === 'iMikerAI',
+            when: (answers: { aiSelected: string; }) => answers.aiSelected === 'fastGPT',
         },
         {
             type: 'input',
-            name: 'fastGPTEndpoint',
+            name: 'fastGPT_Endpoint',
             message: '请输入米课AI终端地址，默认https://gpt.imiker.com/api:',
             default: 'https://gpt.imiker.com/api',
-            when: (answers: { aiSelected: string; }) => answers.aiSelected === 'iMikerAI',
+            when: (answers: { aiSelected: string; }) => answers.aiSelected === 'fastGPT',
             validate: (input: string) => {
                 // 使用正则表达式来验证URL的有效性
                 const pattern = new RegExp('^(https?:\\/\\/)?' + // 协议
@@ -62,7 +62,7 @@ async function main() {
         },
         {
             type: 'input',
-            name: 'wppSessionName',
+            name: 'wpp_Session_Name',
             message: '请输入你的英文名，默认YANSIR:',
             default: 'YANSIR',
             validate: (input: string) => {
@@ -77,7 +77,7 @@ async function main() {
         ,
         {
             type: 'input',
-            name: 'humanInterventionKeyword',
+            name: 'human_Intervention_Keyword',
             message: '请输入人工干预关键词，默认".":',
             default: '.',
             validate: (input: string) => {
@@ -90,7 +90,7 @@ async function main() {
         },
         {
             type: 'input',
-            name: 'aiInterventionKeyword',
+            name: 'ai_Intervention_Keyword',
             message: '请输入AI干预关键词，默认",":',
             default: ',',
             validate: (input: string) => {
@@ -108,7 +108,7 @@ async function main() {
     // 构建.env文件内容，安全地访问answers对象的属性
     const envContent = Object.keys(answers)
         .filter((key) => answers[key] !== undefined) // 过滤未定义的值
-        .map((key) => `${key.toUpperCase()}=${answers[key]}`)
+        .map((key) => `${key.toUpperCase()}="${answers[key]}"`)
         .join('\n');
 
     // 写入.env文件

@@ -4,7 +4,7 @@ dotenv.config();
 import { logger } from '../utils/logger';
 
 export const config = {
-  aiSelected: process.env.AI_SELECTED || 'GEMINI',
+  aiSelected: process.env.AISELECTED || 'fastGPT',
   maxRetries: 3,
   wppSessionName: process.env.WPP_SESSION_NAME || 'YANSIR',
   humanInterventionKeyword: process.env.HUMAN_INTERVENTION_KEYWORD || '.', // 人工干预关键词，句号结尾
@@ -25,8 +25,8 @@ export function validateConfig() {
   } else if (config.aiSelected === 'OpenAI' && (!config.openAIKey || !config.openAIAssistant)) {
     logger.error('错误：选择了 OpenAI 服务，但缺少 OPENAI_KEY 或 OPENAI_ASSISTANT 环境变量。');
     process.exit(1);
-  } else if (config.aiSelected === 'FastGPT' && (!config.fastGPTKey || !config.fastGPTEndpoint)) {
-    logger.error('错误：选择了 FastGPT 服务，但缺少 FASTGPT_KEY 或 FASTGPT_ENDPOINT 环境变量。');
+  } else if (config.aiSelected === 'fastGPT' && (!config.fastGPTKey || !config.fastGPTEndpoint)) {
+    logger.error('错误：选择了 fastGPT 服务，但缺少 FASTGPT_KEY 或 FASTGPT_ENDPOINT 环境变量。');
     process.exit(1);
   }
 
