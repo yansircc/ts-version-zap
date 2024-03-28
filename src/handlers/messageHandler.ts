@@ -20,6 +20,16 @@ class MessageQueueManager {
         }
     }
 
+    private resetMergeTimer(): void {
+        if (this.mergeTimeout) {
+            clearTimeout(this.mergeTimeout);
+        }
+
+        this.mergeTimeout = setTimeout(() => {
+            this.processMessages();
+        }, 5000); // 5 seconds wait time before processing messages
+    }
+
     private startMergeTimer(): void {
         if (this.mergeTimeout) {
             clearTimeout(this.mergeTimeout);
@@ -33,20 +43,29 @@ class MessageQueueManager {
     }
 
     private async processMessages(): Promise<void> {
-        if (this.processing) {
-            return;
-        }
+        if (this.processing) return;
+        
         this.processing = true;
+        // Stop the timer as we're now processing messages
+        if (this.mergeTimeout) {
+            clearTimeout(this.mergeTimeout);
+            this.mergeTimeout = null;
+        }
 
-        // Combine all pending messages into a single message object
-        const combinedMessage = this.combineMessages(this.pendingMessages);
-        this.pendingMessages = []; // Clear the queue
-        this.mergeTimeout = null; // Reset the timer
+        while (this.pendingMessages.length > 0) {
+            const combinedMessage = this.combineMessages(this.pendingMessages);
+            this.pendingMessages = []; // Clear the queue
 
-        // Process the combined message
-        await this.handleMessage(combinedMessage);
+            await this.handleMessage(combinedMessage);
+
+            // Check if new messages were received during processing and immediately continue processing if so.
+            if (this.pendingMessages.length > 0) {
+                continue;
+            }
+        }
 
         this.processing = false;
+        this.resetMergeTimer(); // Reset the timer in case new messages arrive after processing
     }
 
     private combineMessages(messages: Message[]): Message {
@@ -81,12 +100,15 @@ class MessageQueueManager {
         }
     
         try {
-            // 调用 fastGPTService 并处理回复
             const { answer } = await fastGPTService(combinedMessage.chatId, combinedMessage.body);
-            const messages = splitMessages(answer); // 使用您之前定义的 splitMessages 函数来分割消息
-            await sendMessagesWithTypingSimulation(client, combinedMessage.from, combinedMessage, messages);
+            // After successfully calling fastGPTService, process the answer
+            const messages = splitMessages(answer);
+            await sendMessagesWithTypingSimulation(getClient(), combinedMessage.from, combinedMessage, messages);
         } catch (error) {
             logger.error('处理合并消息时出错:', error);
+            // Optionally retry or re-enqueue the combinedMessage for later processing
+            // For example, you might push the combinedMessage back to pendingMessages
+            // Or implement a retry mechanism based on specific error types or a retry counter
         }
     }
 }
