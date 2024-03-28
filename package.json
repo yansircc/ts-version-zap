@@ -5,7 +5,7 @@
   "scripts": {
     "config": "bun ./src/config/setupConfig.ts",
     "dev": "bun ./src/app.ts",
-    "close": "bun ./src/services/destroyClient.ts"
+    "close": "sudo rm -r ./whatsapp-session"
   },
   "type": "module",
   "devDependencies": {
