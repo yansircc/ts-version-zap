@@ -5,7 +5,6 @@
   "scripts": {
     "config": "bun ./src/config/setupConfig.ts",
     "dev": "bun ./src/app.ts",
-    "start": "pm2 start ecosystem.config.js",
     "close": "sudo rm -r ./whatsapp-session"
   },
   "type": "module",
