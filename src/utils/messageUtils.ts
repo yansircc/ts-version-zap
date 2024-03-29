@@ -28,12 +28,12 @@ export function splitMessages(text: string): string[] {
                 let cutIndex = sentence.lastIndexOf(' ', MAX_LENGTH);
                 if (cutIndex === -1 || cutIndex === 0) cutIndex = MAX_LENGTH; // 处理无空格的长字符串
                 // 移除末尾的标点符号
-                const subPart = sentence.slice(0, cutIndex).trim().replace(/[,.?!]$/, '');
+                const subPart = sentence.slice(0, cutIndex).trim().replace(/[,.!]$/, '');
                 acc.push(subPart);
                 sentence = sentence.slice(cutIndex + 1).trim();
             }
             // 如果句子长度小于等于MAX_LENGTH，直接添加到数组中，同时移除末尾的标点符号
-            if (sentence) acc.push(sentence.replace(/[,.?!]$/, ''));
+            if (sentence) acc.push(sentence.replace(/[,.!]$/, ''));
             return acc;
         }, [] as string[]);
     });
@@ -47,7 +47,7 @@ export function splitMessages(text: string): string[] {
 export function calculateTypingDelay(message: string): number {
     const baseDelay = 300; // 基础延迟时间
     const perCharDelay = 100; // 每个字符的延迟时间
-    const lengthDelay = Math.min(message.length * perCharDelay, 3000); // 为长消息设置最大延迟时间
+    const lengthDelay = Math.min(message.length * perCharDelay, 7000); // 为长消息设置最大延迟时间
     return baseDelay + lengthDelay;
 }
 
