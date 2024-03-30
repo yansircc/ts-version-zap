@@ -24,6 +24,13 @@ async function main() {
         },
         {
             type: 'input',
+            name: 'openAI_Endpoint',
+            message: '请输入 OEPNAI_ENDPOINT:',
+            default: 'https://api.openai.com',
+            when: (answers: { aiSelected: string; }) => answers.aiSelected === 'OPENAI',
+        },
+        {
+            type: 'input',
             name: 'gemini_Key',
             message: '请输入 GEMINI_KEY:',
             when: (answers: { aiSelected: string; }) => answers.aiSelected === 'GEMINI',

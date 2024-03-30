@@ -14,7 +14,7 @@ export const config = {
   openAIEndpoint: process.env.OPENAI_ENDPOINT || 'https://api.openai.com',
   openAIAssistant: process.env.OPENAI_ASSISTANT,
   fastGPTKey: process.env.FASTGPT_KEY || process.env.OPENAI_KEY,
-  fastGPTEndpoint: process.env.FASTGPT_ENDPOINT || 'https://api.openai.com',
+  fastGPTEndpoint: process.env.FASTGPT_ENDPOINT || 'https://gpt.imiker.com/api',
   fastGPTPrompt: process.env.FASTGPT_PROMPT || 'Long time no see!',
 };
 
