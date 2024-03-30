@@ -32,6 +32,8 @@ export async function initWhatsAppClient(): Promise<void> {
                 if (base64Data) {
                     const qrcodePath = path.join(__dirname, '../../public/qrcode.png');
                     const dataBuffer = Buffer.from(base64Data, 'base64');
+                    console.log('__dirname:', __dirname);
+                    console.log('qrcodePath:', qrcodePath);
                     writeFile(qrcodePath, dataBuffer, function (err) {
                         if (err) {
                             logger.error('保存二维码图片失败:', err);
