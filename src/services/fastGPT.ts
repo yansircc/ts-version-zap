@@ -77,9 +77,10 @@ export const fastGPTService = async (chatId: string, input: string): Promise<AIR
 
   const prompt = ChatPromptTemplate.fromMessages(history);
   const chatModel = new ChatOpenAI({
-    openAIApiKey: config.fastGPTKey || config.openAIKey,
-    configuration: { baseURL: `${config.fastGPTEndpoint || config.openAIEndpoint}/v1` },
-    
+    //openAIApiKey: config.fastGPTKey || config.openAIKey,
+    //configuration: { baseURL: `${config.fastGPTEndpoint || config.openAIEndpoint}/v1` },
+    openAIApiKey: config.openAIKey,
+    configuration: { baseURL: `https://api.openai.com/v1` }
   });
   logger.info(`正在向FastGPT发送请求，聊天Id=${chatId}。`);
   const llmChain = prompt.pipe(chatModel).pipe(new StringOutputParser());
