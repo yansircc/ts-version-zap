@@ -10,11 +10,11 @@ export const config = {
   humanInterventionKeyword: process.env.HUMAN_INTERVENTION_KEYWORD || '.', // 人工干预关键词，句号结尾
   aiInterventionKeyword: process.env.AI_INTERVENTION_KEYWORD || ',', // AI干预关键词，逗号结尾
   geminiKey: process.env.GEMINI_KEY,
-  openAIKey: process.env.OPENAI_KEY,
+  openAIKey: process.env.OPENAI_KEY || 'YOUR_OPENAI_KEY',
   openAIEndpoint: process.env.OPENAI_ENDPOINT || 'https://api.openai.com',
   openAIAssistant: process.env.OPENAI_ASSISTANT,
-  fastGPTKey: process.env.FASTGPT_KEY,
-  fastGPTEndpoint: process.env.FASTGPT_ENDPOINT,
+  fastGPTKey: process.env.FASTGPT_KEY || process.env.OPENAI_KEY,
+  fastGPTEndpoint: process.env.FASTGPT_ENDPOINT || 'https://api.openai.com',
   fastGPTPrompt: process.env.FASTGPT_PROMPT || 'Long time no see!',
 };
 
