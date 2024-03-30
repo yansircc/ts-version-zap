@@ -7,7 +7,7 @@ import { validateConfig } from './config';
 import { initWhatsAppClient } from './services/whatsappClient';
 
 // 导入并启动 Express 服务器
-//import './public/server';
+import { server } from './server';
 
 startLogging();
 validateConfig();
@@ -19,6 +19,9 @@ initWhatsAppClient().then(() => {
 
 // SIGINT信号处理留在最后
 process.on('SIGINT', () => {
-    logger.debug('Caught interrupt signal, exiting...');
-    process.exit();
+    logger.debug('Caught interrupt signal, shutting down gracefully...');
+    server.close(() => {
+        logger.debug('Express server shut down.');
+        process.exit(0);
+    });
 });

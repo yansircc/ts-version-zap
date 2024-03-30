@@ -6,13 +6,7 @@ import { processMessage } from '../handlers/messageHandler';
 import { isValidMessage } from '../utils/isValidMessage';
 import { config } from '../config';
 import { logger } from '../utils/logger';
-import express from 'express';
 import { writeFile } from 'fs';
-
-// 初始化Express应用
-const app = express();
-const port = 3000;
-app.use(express.static('public')); // 设置静态文件目录
 
 let clientInstance: Whatsapp | null = null;
 
@@ -40,7 +34,7 @@ export async function initWhatsAppClient(): Promise<void> {
                         if (err) {
                             logger.error('保存二维码图片失败:', err);
                         } else {
-                            logger.info(`备用二维码地址http://{此处改成服务器ip地址}:${port}/qrcode.png`);
+                            logger.info(`备用二维码地址http://{此处改成服务器ip地址}:3000/qrcode.png`);
                         }
                     });
                 } else {
@@ -75,8 +69,3 @@ export async function initWhatsAppClient(): Promise<void> {
 export function getClient(): Whatsapp | null {
     return clientInstance;
 }
-
-// 启动Express服务器以提供二维码图片的访问
-app.listen(port, () => {
-    logger.info(`服务器已在 http://{此处改成服务器ip地址}:${port} 启动。`);
-});
