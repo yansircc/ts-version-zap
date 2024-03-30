@@ -6,7 +6,7 @@ import { processMessage } from '../handlers/messageHandler';
 import { isValidMessage } from '../utils/isValidMessage';
 import { config } from '../config';
 import { logger } from '../utils/logger';
-import * as express from 'express';
+import express from 'express';
 import { writeFile } from 'fs';
 
 // 初始化Express应用
