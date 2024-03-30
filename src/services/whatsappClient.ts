@@ -7,6 +7,7 @@ import { isValidMessage } from '../utils/isValidMessage';
 import { config } from '../config';
 import { logger } from '../utils/logger';
 import { writeFile } from 'fs';
+import path from 'path';
 
 let clientInstance: Whatsapp | null = null;
 
@@ -29,6 +30,7 @@ export async function initWhatsAppClient(): Promise<void> {
                 const base64Data = base64Qrimg.split(';base64,').pop();
 
                 if (base64Data) {
+                    const qrcodePath = path.join(__dirname, '../../public/qrcode.png');
                     const dataBuffer = Buffer.from(base64Data, 'base64');
                     writeFile("./public/qrcode.png", dataBuffer, function (err) {
                         if (err) {

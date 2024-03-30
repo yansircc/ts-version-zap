@@ -39,8 +39,8 @@ async function loadChatHistory(chatId: string): Promise<ChatHistory> {
     const data = await fsPromises.readFile(filePath, 'utf8');
     let history: ChatHistory = JSON.parse(data);
 
-    // 仅保留最近的10条消息
-    history = history.slice(-10);
+    // 仅保留最近的5条消息
+    history = history.slice(-5);
 
     logger.info(`成功加载聊天Id=${chatId}的聊天历史。`);
     return JSON.parse(data);
