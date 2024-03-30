@@ -80,8 +80,9 @@ export const fastGPTService = async (chatId: string, input: string): Promise<AIR
   let chatModelConfiguration;
   if (config.aiSelected === 'fastGPT') {
     chatModelConfiguration = {
+      modelName: 'gpt-4-turbo-preview',
       openAIApiKey: config.fastGPTKey,
-      configuration: { baseURL: 'https://gpt.imiker.com/api/v1' }
+      configuration: { baseURL: 'https://gpt.imiker.com/api/v1' },
     };
   } else if (config.aiSelected === 'OPENAI') {
     chatModelConfiguration = {
