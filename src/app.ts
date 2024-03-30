@@ -14,7 +14,7 @@ validateConfig();
 
 // 启动WhatsApp客户端
 initWhatsAppClient().then(() => {
-    logger.info('WhatsApp 客户端初始化成功，并开始监听消息。');
+    logger.info('WhatsApp 客户端中...');
 }).catch(logger.error);
 
 // SIGINT信号处理留在最后
