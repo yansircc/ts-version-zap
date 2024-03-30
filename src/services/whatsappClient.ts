@@ -45,7 +45,7 @@ export async function initWhatsAppClient(): Promise<void> {
                         if (err) {
                             logger.error('保存二维码图片失败:', err);
                         } else {
-                            logger.info(`备用二维码地址>>>>> http://{此处改成服务器ip地址}:3000/qrcode.png <<<<<`);
+                            logger.info(`备用二维码地址(1分钟有效)>>>>> http://{此处改成服务器ip地址}:3000/qrcode.html <<<<<`);
                         }
                     });
                 } else {
