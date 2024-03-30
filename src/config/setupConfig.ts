@@ -53,26 +53,26 @@ async function main() {
             message: '请输入米课AI的API KEY:',
             when: (answers: { aiSelected: string; }) => answers.aiSelected === 'fastGPT',
         },
-        {
-            type: 'input',
-            name: 'fastGPT_Endpoint',
-            message: '请输入米课AI终端地址，默认https://gpt.imiker.com/api:',
-            default: 'https://gpt.imiker.com/api',
-            when: (answers: { aiSelected: string; }) => answers.aiSelected === 'fastGPT',
-            validate: (input: string) => {
-                // 使用正则表达式来验证URL的有效性
-                const pattern = new RegExp('^(https?:\\/\\/)?' + // 协议
-                    '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' + // 域名
-                    '((\\d{1,3}\\.){3}\\d{1,3}))' + // 或IP (v4)地址
-                    '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*' + // 端口和路径
-                    '(\\?[;&a-z\\d%_.~+=-]*)?' + // 查询字符串
-                    '(\\#[-a-z\\d_]*)?$', 'i'); // 锚点
-                if (!pattern.test(input)) {
-                    return '请输入一个有效的URL地址。';
-                }
-                return true;
-            },
-        },
+        // {
+        //     type: 'input',
+        //     name: 'fastGPT_Endpoint',
+        //     message: '请输入米课AI终端地址，默认https://gpt.imiker.com/api:',
+        //     default: 'https://gpt.imiker.com/api',
+        //     when: (answers: { aiSelected: string; }) => answers.aiSelected === 'fastGPT',
+        //     validate: (input: string) => {
+        //         // 使用正则表达式来验证URL的有效性
+        //         const pattern = new RegExp('^(https?:\\/\\/)?' + // 协议
+        //             '((([a-z\\d]([a-z\\d-]*[a-z\\d])*)\\.)+[a-z]{2,}|' + // 域名
+        //             '((\\d{1,3}\\.){3}\\d{1,3}))' + // 或IP (v4)地址
+        //             '(\\:\\d+)?(\\/[-a-z\\d%_.~+]*)*' + // 端口和路径
+        //             '(\\?[;&a-z\\d%_.~+=-]*)?' + // 查询字符串
+        //             '(\\#[-a-z\\d_]*)?$', 'i'); // 锚点
+        //         if (!pattern.test(input)) {
+        //             return '请输入一个有效的URL地址。';
+        //         }
+        //         return true;
+        //     },
+        // },
         {
             type: 'input',
             name: 'wpp_Session_Name',

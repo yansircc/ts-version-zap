@@ -67,7 +67,6 @@ async function saveChatHistory(chatId: string, history: ChatHistory): Promise<vo
   }
 }
 
-// 与FastGPT交互的主要函数
 export const fastGPTService = async (chatId: string, input: string): Promise<AIResponse> => {
   await ensureChatHistoryDirExists();
   let history = await loadChatHistory(chatId);
@@ -76,19 +75,32 @@ export const fastGPTService = async (chatId: string, input: string): Promise<AIR
   logger.info(`聊天Id=${chatId}的聊天历史中添加了新输入。`);
 
   const prompt = ChatPromptTemplate.fromMessages(history);
-  const chatModel = new ChatOpenAI({
-    //openAIApiKey: config.fastGPTKey || config.openAIKey,
-    //configuration: { baseURL: `${config.fastGPTEndpoint || config.openAIEndpoint}/v1` },
-    openAIApiKey: config.openAIKey,
-    configuration: { baseURL: `https://api.openai.com/v1` }
-  });
-  logger.info(`正在向FastGPT发送请求，聊天Id=${chatId}。`);
+
+  // 根据config.aiSelected选择不同的AI服务
+  let chatModelConfiguration;
+  if (config.aiSelected === 'fastGPT') {
+    chatModelConfiguration = {
+      openAIApiKey: config.fastGPTKey,
+      configuration: { baseURL: 'https://gpt.imiker.com/api/v1' }
+    };
+  } else if (config.aiSelected === 'OPENAI') {
+    chatModelConfiguration = {
+      openAIApiKey: config.openAIKey,
+      configuration: { baseURL: 'https://api.openai.com/v1' }
+    };
+  } else {
+    throw new Error(`Unsupported AI service: ${config.aiSelected}`);
+  }
+
+  const chatModel = new ChatOpenAI(chatModelConfiguration);
+  logger.info(`正在向${config.aiSelected}发送请求，聊天Id=${chatId}。`);
   const llmChain = prompt.pipe(chatModel).pipe(new StringOutputParser());
   const message = await llmChain.invoke({ input });
 
   history.push(['ai', message]); // 将AI回应添加到历史记录中
   await saveChatHistory(chatId, history); // 保存更新后的历史记录
-  logger.info(`已接收并保存来自聊天Id=${chatId}的FastGPT回应。`);
+  logger.info(`已接收并保存来自聊天Id=${chatId}的${config.aiSelected}回应。`);
 
   return { answer: message };
 };
+
