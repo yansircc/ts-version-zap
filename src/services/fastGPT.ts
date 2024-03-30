@@ -37,6 +37,11 @@ async function loadChatHistory(chatId: string): Promise<ChatHistory> {
   const filePath = path.join(chatHistoryDir, `${chatId}.json`);
   try {
     const data = await fsPromises.readFile(filePath, 'utf8');
+    let history: ChatHistory = JSON.parse(data);
+
+    // 仅保留最近的10条消息
+    history = history.slice(-10);
+
     logger.info(`成功加载聊天Id=${chatId}的聊天历史。`);
     return JSON.parse(data);
   } catch (error) {
