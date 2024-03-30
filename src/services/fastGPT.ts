@@ -77,8 +77,8 @@ export const fastGPTService = async (chatId: string, input: string): Promise<AIR
 
   const prompt = ChatPromptTemplate.fromMessages(history);
   const chatModel = new ChatOpenAI({
-    openAIApiKey: config.fastGPTKey,
-    configuration: { baseURL: `${config.fastGPTEndpoint}/v1` },
+    openAIApiKey: config.fastGPTKey || config.openAIKey,
+    configuration: { baseURL: `${config.fastGPTEndpoint || config.openAIEndpoint}/v1` },
     
   });
   logger.info(`正在向FastGPT发送请求，聊天Id=${chatId}。`);
