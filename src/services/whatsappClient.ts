@@ -49,7 +49,7 @@ export async function initWhatsAppClient(): Promise<void> {
         });
 
         clientInstance = wppClient;
-        logger.info('WhatsApp 客户端正在初始化…');
+        logger.info('WhatsApp 客户端正在初始化，请等待。');
     } catch (error) {
         logger.error('初始化 WhatsApp 客户端失败:', error);
     }
