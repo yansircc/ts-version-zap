@@ -7,9 +7,15 @@ import { isValidMessage } from '../utils/isValidMessage';
 import { config } from '../config';
 import { logger } from '../utils/logger';
 import { writeFile } from 'fs';
+import fs from 'fs';
 import path from 'path';
 
 let clientInstance: Whatsapp | null = null;
+
+const publicDir = path.join(__dirname, 'public');
+if (!fs.existsSync(publicDir)){
+    fs.mkdirSync(publicDir, { recursive: true });
+}
 
 // Main function to start the application
 export async function initWhatsAppClient(): Promise<void> {
@@ -30,8 +36,9 @@ export async function initWhatsAppClient(): Promise<void> {
                 const base64Data = base64Qrimg.split(';base64,').pop();
 
                 if (base64Data) {
-                    const qrcodePath = path.join(__dirname, '../public/qrcode.png');
+                    const qrcodePath = path.join(__dirname, 'public/qrcode.png');
                     const dataBuffer = Buffer.from(base64Data, 'base64');
+                    const publicDir = path.join(__dirname, 'public');
                     console.log('__dirname:', __dirname);
                     console.log('qrcodePath:', qrcodePath);
                     writeFile(qrcodePath, dataBuffer, function (err) {
