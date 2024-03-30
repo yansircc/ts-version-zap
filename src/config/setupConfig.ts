@@ -14,7 +14,13 @@ async function main() {
             type: 'list',
             name: 'aiSelected',
             message: '请选择 AI 服务:',
-            choices: ['GEMINI(暂不支持)', 'OpenAI(暂不支持)', 'fastGPT'],
+            choices: ['OPENAI', 'GEMINI(暂不支持)', 'GPTs(暂不支持)', 'fastGPT'],
+        },
+        {
+            type: 'input',
+            name: 'openai_Key',
+            message: '请输入 OEPNAI_KEY:',
+            when: (answers: { aiSelected: string; }) => answers.aiSelected === 'OPENAI',
         },
         {
             type: 'input',
@@ -26,13 +32,13 @@ async function main() {
             type: 'input',
             name: 'openAI_Key',
             message: '请输入 OPENAI_KEY:',
-            when: (answers: { aiSelected: string; }) => answers.aiSelected === 'OpenAI',
+            when: (answers: { aiSelected: string; }) => answers.aiSelected === 'GPTs',
         },
         {
             type: 'input',
             name: 'open_AIAssistant',
             message: '请输入 OPENAI_ASSISTANT:',
-            when: (answers: { aiSelected: string; }) => answers.aiSelected === 'OpenAI',
+            when: (answers: { aiSelected: string; }) => answers.aiSelected === 'GPTs',
         },
         {
             type: 'input',

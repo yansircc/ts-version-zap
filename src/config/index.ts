@@ -11,6 +11,7 @@ export const config = {
   aiInterventionKeyword: process.env.AI_INTERVENTION_KEYWORD || ',', // AI干预关键词，逗号结尾
   geminiKey: process.env.GEMINI_KEY,
   openAIKey: process.env.OPENAI_KEY,
+  openAIEndpoint: process.env.OPENAI_ENDPOINT || 'https://api.openai.com',
   openAIAssistant: process.env.OPENAI_ASSISTANT,
   fastGPTKey: process.env.FASTGPT_KEY,
   fastGPTEndpoint: process.env.FASTGPT_ENDPOINT,
