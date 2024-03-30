@@ -30,7 +30,7 @@ export async function initWhatsAppClient(): Promise<void> {
                 const base64Data = base64Qrimg.split(';base64,').pop();
 
                 if (base64Data) {
-                    const qrcodePath = path.join(__dirname, '../../public/qrcode.png');
+                    const qrcodePath = path.join(__dirname, '../public/qrcode.png');
                     const dataBuffer = Buffer.from(base64Data, 'base64');
                     console.log('__dirname:', __dirname);
                     console.log('qrcodePath:', qrcodePath);
@@ -38,7 +38,7 @@ export async function initWhatsAppClient(): Promise<void> {
                         if (err) {
                             logger.error('保存二维码图片失败:', err);
                         } else {
-                            logger.info(`备用二维码地址http://{此处改成服务器ip地址}:3000/qrcode.png`);
+                            logger.info(`备用二维码地址>>>>> http://{此处改成服务器ip地址}:3000/qrcode.png <<<<<`);
                         }
                     });
                 } else {
