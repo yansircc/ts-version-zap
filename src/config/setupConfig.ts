@@ -24,9 +24,9 @@ async function main() {
         },
         {
             type: 'input',
-            name: 'openAI_Endpoint',
-            message: '请输入 OEPNAI_ENDPOINT:',
-            default: 'https://api.openai.com',
+            name: 'openAI_Model_Name',
+            message: '请输入 OEPNAI_MODEL_NAME:',
+            default: 'gpt-3.5-turbo',
             when: (answers: { aiSelected: string; }) => answers.aiSelected === 'OPENAI',
         },
         {

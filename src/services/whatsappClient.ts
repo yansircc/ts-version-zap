@@ -6,6 +6,13 @@ import { processMessage } from '../handlers/messageHandler';
 import { isValidMessage } from '../utils/isValidMessage';
 import { config } from '../config';
 import { logger } from '../utils/logger';
+import * as express from 'express';
+import { writeFile } from 'fs';
+
+// 初始化Express应用
+const app = express();
+const port = 3000;
+app.use(express.static('public')); // 设置静态文件目录
 
 let clientInstance: Whatsapp | null = null;
 
@@ -25,19 +32,29 @@ export async function initWhatsAppClient(): Promise<void> {
                 args: ['--no-sandbox'],
             },
             catchQR: (base64Qrimg, asciiQR) => {
-                // 在这里处理二维码，例如显示在控制台或发送给某人扫描
-                logger.info('请扫描下面的 QR 码登录 WhatsApp');
-                logger.info(asciiQR);
+                const base64Data = base64Qrimg.split(';base64,').pop();
+
+                if (base64Data) {
+                    const dataBuffer = Buffer.from(base64Data, 'base64');
+                    writeFile("./public/qrcode.png", dataBuffer, function (err) {
+                        if (err) {
+                            logger.error('保存二维码图片失败:', err);
+                        } else {
+                            logger.info(`备用二维码地址http://{此处改成服务器ip地址}:${port}/qrcode.png`);
+                        }
+                    });
+                } else {
+                    // 如果base64Data是undefined，可以在这里处理错误或记录日志
+                    logger.error('无法解析QR码的Base64数据');
+                }
             },
             statusFind: (statusSession, session) => {
                 logger.debug('Session Status: ', statusSession);
-                // 在这里可以根据session的状态做一些事情，比如当session失效时重启session
+                // 可以根据session状态进行操作
             },
-            headless: true, // 无头模式，如果你想看浏览器操作可以设置为false
-            // 其他配置项根据需要添加
+            headless: true,
         });
 
-        // 设置消息接收的回调函数
         wppClient.onMessage(async (message: Message) => {
             if (isValidMessage(message)) {
                 try {
@@ -58,3 +75,8 @@ export async function initWhatsAppClient(): Promise<void> {
 export function getClient(): Whatsapp | null {
     return clientInstance;
 }
+
+// 启动Express服务器以提供二维码图片的访问
+app.listen(port, () => {
+    logger.info(`服务器已在 http://{此处改成服务器ip地址}:${port} 启动。`);
+});
